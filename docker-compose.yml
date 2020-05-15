@@ -1,0 +1,16 @@
+version: '3'
+
+services: 
+    collector:
+        build: 
+            context: .
+            dockerfile: dockerfile
+        container_name: soliveboa_collector
+        network_mode: bridge
+        environment: 
+            AMQ_URL: amqp://guest:guest@soliveboa_broker:5672
+        external_links:
+            - soliveboa_broker
+
+
+    
