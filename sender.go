@@ -8,20 +8,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	guuid "github.com/google/uuid"
+	"strconv"
 )
 
-// MessageContent content message
-type MessageContent struct {
-	Package []ContentMessage
-}
-
 var (
-	packageSize    = 10                   // maximum size per package
-	packageCount   = 0                    // count in package
-	packageMessage MessageContent         // package message
-	webURL         = os.Getenv("WEB_URL") // url to web endpoint
+	webURL = os.Getenv("WEB_URL") // url to web endpoint
 )
 
 // PostToProcess - receive the message that will be processed
@@ -35,21 +26,18 @@ func (m MessageResponse) PostToProcess() error {
 		return err
 	}
 
-	message.addMessageToPackage()
+	message.Post()
 
 	fmt.Println(message.Content.Likes)
-
-	PostPackage()
 
 	return nil
 
 }
 
-// PostPackage to the API
-func PostPackage() error {
+// Post to the API
+func (m SanitizedMessage) Post() error {
 
-	j, err := json.Marshal(&packageMessage.Package)
-	// j := []byte(`{"title":"Buy cheese and bread for breakfast."}`)
+	j, err := json.Marshal(m.Content)
 
 	if err != nil {
 		log.Printf("[X] error to marshal packageMessage: %v", err)
@@ -63,10 +51,8 @@ func PostPackage() error {
 		return err
 	}
 
-	x := guuid.New().String()
-
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Correlation-ID", x)
+	req.Header.Set("X-Correlation-ID", m.Headers.CorrelationID)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -81,21 +67,11 @@ func PostPackage() error {
 	//
 	if resp.StatusCode != http.StatusOK {
 		fmt.Println("[X] error - response Status:", resp.Status)
-		return errors.New("Status Code: ")
+		return errors.New("Status Code: " + strconv.Itoa(resp.StatusCode))
 	}
 
 	fmt.Println("response Headers:", resp.Header)
 
 	return nil
 
-}
-
-func (m SanitizedMessage) addMessageToPackage() {
-
-	// add message to the package
-
-	packageMessage.Package = append(packageMessage.Package, m.Content)
-
-	// add to the package count
-	packageCount++
 }
