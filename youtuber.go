@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"os"
 
 	"github.com/streadway/amqp"
 	"google.golang.org/api/youtube/v3"
 )
 
 var (
-	AMQ_URL = os.Getenv("AMQ_URL")
+	// AMQURL = os.Getenv("AMQ_URL")
+	AMQURL = "amqp://guest:guest@127.0.0.1:5672"
 )
 
 func sender() {
@@ -97,10 +97,10 @@ type interalContentResponse struct {
 	AppID         string `json:"appId"`
 }
 
-// GetYoutubeData - listen to retrieve the data from youtebe api broker
-func GetYoutubeData() {
+// GetVideoDataFromBroker - listen to retrieve the data from youtebe api broker
+func GetVideoDataFromBroker() {
 
-	conn, err := amqp.Dial(AMQ_URL)
+	conn, err := amqp.Dial(AMQURL)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 

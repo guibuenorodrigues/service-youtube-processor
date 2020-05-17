@@ -2,8 +2,10 @@ package main
 
 import (
 	"errors"
+	"html/template"
 	"log"
 	"net/url"
+	"reflect"
 	"strconv"
 
 	guuid "github.com/google/uuid"
@@ -84,8 +86,14 @@ func (m MessageResponse) Sanitizer() (SanitizedMessage, error) {
 
 func (m MessageResponse) sanitizeLikes() string {
 
+	err := ReflectStructField(m.Videos.Items[0].Statistics, "LikeCount")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
+
 	if string(m.Videos.Items[0].Statistics.LikeCount) == "" {
-		// 	// create function to save log
 		return ""
 	}
 
@@ -96,6 +104,13 @@ func (m MessageResponse) sanitizeLikes() string {
 
 // Contains critical information
 func (m MessageResponse) sanitizeTituloLive() string {
+
+	err := ReflectStructField(m.Videos.Items[0].Snippet, "Title")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
 
 	if m.Videos.Items[0].Snippet.Title == "" {
 		// create function to save log
@@ -108,6 +123,14 @@ func (m MessageResponse) sanitizeTituloLive() string {
 }
 
 func (m MessageResponse) sanitizeThumbStandard() string {
+
+	err := ReflectStructField(m.Videos.Items[0].Snippet.Thumbnails, "Standard")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
+
 	if m.Videos.Items[0].Snippet.Thumbnails.Standard.Url == "" {
 		// create function to save log
 		return ""
@@ -119,6 +142,13 @@ func (m MessageResponse) sanitizeThumbStandard() string {
 
 func (m MessageResponse) sanitizeThumbMedium() string {
 
+	err := ReflectStructField(m.Videos.Items[0].Snippet.Thumbnails, "Medium")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
+
 	if m.Videos.Items[0].Snippet.Thumbnails.Medium.Url == "" {
 		// create function to save log
 		return ""
@@ -129,15 +159,31 @@ func (m MessageResponse) sanitizeThumbMedium() string {
 
 func (m MessageResponse) sanitizeThumbMaxRes() string {
 
+	err := ReflectStructField(m.Videos.Items[0].Snippet.Thumbnails, "Maxres")
+
+	// if does not existe
+	if err != nil {
+
+		return ""
+	}
+
 	if m.Videos.Items[0].Snippet.Thumbnails.Maxres.Url == "" {
 		// create function to save log
 		return ""
 	}
+
 	u := url.PathEscape(m.Videos.Items[0].Snippet.Thumbnails.Maxres.Url)
 	return u
 }
 
 func (m MessageResponse) sanitizeThumbHigh() string {
+
+	err := ReflectStructField(m.Videos.Items[0].Snippet.Thumbnails, "High")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
 
 	if m.Videos.Items[0].Snippet.Thumbnails.High.Url == "" {
 		// create function to save log
@@ -150,6 +196,13 @@ func (m MessageResponse) sanitizeThumbHigh() string {
 
 func (m MessageResponse) sanitizeThumbDefault() string {
 
+	err := ReflectStructField(m.Videos.Items[0].Snippet.Thumbnails, "Default")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
+
 	if m.Videos.Items[0].Snippet.Thumbnails.Default.Url == "" {
 		// create function to save log
 		return ""
@@ -161,15 +214,29 @@ func (m MessageResponse) sanitizeThumbDefault() string {
 
 func (m MessageResponse) sanitizeDescricaoLive() string {
 
+	err := ReflectStructField(m.Videos.Items[0].Snippet, "Description")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
+
 	if m.Videos.Items[0].Snippet.Description == "" {
 		// create function to save log
 		return ""
 	}
 
-	return m.Videos.Items[0].Snippet.Description
+	return template.HTMLEscapeString(m.Videos.Items[0].Snippet.Description)
 }
 
 func (m MessageResponse) sanitizeTituloCanal() string {
+
+	err := ReflectStructField(m.Videos.Items[0].Snippet, "ChannelTitle")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
 
 	if m.Videos.Items[0].Snippet.ChannelTitle == "" {
 		// create function to save log
@@ -181,6 +248,13 @@ func (m MessageResponse) sanitizeTituloCanal() string {
 
 func (m MessageResponse) sanitizeIDCanal() string {
 
+	err := ReflectStructField(m.Videos.Items[0].Snippet, "ChannelId")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
+
 	if m.Videos.Items[0].Snippet.ChannelId == "" {
 		// create function to save log
 		return ""
@@ -190,6 +264,13 @@ func (m MessageResponse) sanitizeIDCanal() string {
 }
 
 func (m MessageResponse) sanitizeIDCategoria() string {
+
+	err := ReflectStructField(m.Videos.Items[0].Snippet, "CategoryId")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
 
 	if m.Videos.Items[0].Snippet.CategoryId == "" {
 		// create function to save log
@@ -201,6 +282,13 @@ func (m MessageResponse) sanitizeIDCategoria() string {
 
 func (m MessageResponse) sanitizeEmbedHTML() string {
 
+	err := ReflectStructField(m.Videos.Items[0].Player, "EmbedHtml")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
+
 	if m.Videos.Items[0].Player.EmbedHtml == "" {
 		// create function to save log
 		return ""
@@ -211,6 +299,14 @@ func (m MessageResponse) sanitizeEmbedHTML() string {
 
 // Contains critical information
 func (m MessageResponse) sanitizeDataPublicacao() string {
+
+	err := ReflectStructField(m.Videos.Items[0].Snippet, "PublishedAt")
+
+	// if does not existe
+	if err != nil {
+		hasCriticalError = true
+		return ""
+	}
 
 	if m.Videos.Items[0].Snippet.PublishedAt == "" {
 		// create function to save log
@@ -225,6 +321,14 @@ func (m MessageResponse) sanitizeDataPublicacao() string {
 // Contains critical information
 func (m MessageResponse) sanitizeDataLive() string {
 
+	err := ReflectStructField(m.Videos.Items[0].LiveStreamingDetails, "ScheduledStartTime")
+
+	// if does not existe
+	if err != nil {
+		hasCriticalError = true
+		return ""
+	}
+
 	if m.Videos.Items[0].LiveStreamingDetails.ScheduledStartTime == "" {
 		// create function to save log
 		hasCriticalError = true
@@ -237,6 +341,14 @@ func (m MessageResponse) sanitizeDataLive() string {
 
 // Contains critical information
 func (m MessageResponse) sanitizeIDLive() string {
+
+	err := ReflectStructField(m.Videos.Items[0], "Id")
+
+	// if does not existe
+	if err != nil {
+		hasCriticalError = true
+		return ""
+	}
 
 	if m.Videos.Items[0].Id == "" {
 		// create function to save log
@@ -264,4 +376,41 @@ func (m MessageResponse) sanitizeUUID() string {
 	}
 
 	return m.Interal.CorrelationID
+}
+
+// ReflectStructField if an interface is either a struct or a pointer to a struct
+// and has the defined member field, if error is nil, the given
+// FieldName exists and is accessible with reflect.
+func ReflectStructField(Iface interface{}, FieldName string) error {
+	ValueIface := reflect.ValueOf(Iface)
+
+	// Check if the passed interface is a pointer
+	if ValueIface.Type().Kind() != reflect.Ptr {
+		// Create a new type of Iface's Type, so we have a pointer to work with
+		ValueIface = reflect.New(reflect.TypeOf(Iface))
+	}
+
+	// 'dereference' with Elem() and get the field by name
+	Field := ValueIface.Elem().FieldByName(FieldName)
+
+	if !Field.IsValid() {
+		return errors.New("Element does not exist in the struct")
+		// return fmt.Errorf("Interface `%s` does not have the field `%s`", ValueIface.Type(), FieldName)
+	}
+
+	// check if is empty
+	if Field.Type().Kind() == reflect.String {
+		if Field.String() == "" {
+			return errors.New("Element does not exist in the struct")
+		}
+	}
+
+	if Field.Type().Kind() == reflect.Ptr {
+		if Field.IsNil() {
+			// fmt.Printf("NAME: %v   --   Type: %v\n", Field, Field.Type().Kind())
+			return errors.New("Element does not exist in the struct")
+		}
+	}
+
+	return nil
 }
