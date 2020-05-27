@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/streadway/amqp"
@@ -109,12 +110,13 @@ func GetVideoDataFromBroker() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"to.processor.postApiData", // name
-		true,                       // durable
-		false,                      // delete when unused
-		false,                      // exclusive
-		false,                      // no-wait
-		nil,                        // arguments
+		// "to.processor.postApiData", // name
+		"to.processor.post",
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
 
@@ -137,8 +139,15 @@ func GetVideoDataFromBroker() {
 
 	go func() {
 		for d := range msgs {
-			youtubeDataReceived(d)
-			d.Ack(false)
+			err := youtubeDataReceived(d)
+
+			if err != nil {
+				fmt.Println("Message not processed, being requeued...")
+				d.Reject(true) // requeue the message
+			} else {
+				d.Ack(false) // ack the message
+			}
+
 		}
 	}()
 
@@ -172,11 +181,11 @@ func youtubeDataReceived(d amqp.Delivery) error {
 	message.Interal.CorrelationID = d.CorrelationId
 	message.Interal.AppID = d.AppId
 
-	_ = message.PostToProcess()
+	err = message.PostToProcess()
 
-	// TODO Depois precisa apagar
-	// a := " - VideoID: " + message.Videos.Items[0].Id + " | Title: " + message.Videos.Items[0].Snippet.Title
-	// log.Printf(" [x] %v", a)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

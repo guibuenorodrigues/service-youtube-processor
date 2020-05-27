@@ -3,16 +3,14 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 var (
 	// webURL = os.Getenv("WEB_URL") // url to web endpoint
-	webURL = "http://tractum.serveo.net/soliveboa/services/live"
+	webURL = "http://soliveboa.com.br/services/live"
 )
 
 type sendStatus struct {
@@ -33,28 +31,35 @@ func (m MessageResponse) PostToProcess() error {
 		return err
 	}
 
-	c := make(chan sendStatus)
-	go message.Post(c)
+	//c := make(chan sendStatus)
+	//go message.Post(c)
+	err = message.Post()
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
 // Post to the API
-func (m SanitizedMessage) Post(c chan sendStatus) {
+func (m SanitizedMessage) Post() error {
 
 	j, err := json.Marshal(m.Content)
 
 	// fmt.Println(string(j))
 	if err != nil {
 		log.Printf("[X] error to marshal packageMessage: %v", err)
-		c <- sendStatus{liveID: m.Content.IDLive, status: false, err: err}
+		//c <- sendStatus{liveID: m.Content.IDLive, status: false, err: err}
+		return err
 	}
 
 	req, err := http.NewRequest("POST", webURL, bytes.NewBuffer(j))
 
 	if err != nil {
 		log.Printf("[X] error to create new http request: %v", err)
-		c <- sendStatus{liveID: m.Content.IDLive, status: false, err: err}
+		//c <- sendStatus{liveID: m.Content.IDLive, status: false, err: err}
+		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -65,24 +70,22 @@ func (m SanitizedMessage) Post(c chan sendStatus) {
 
 	if err != nil {
 		log.Printf("[X] error to send the request: %v", err)
-		c <- sendStatus{liveID: m.Content.IDLive, status: false, err: err}
+		//c <- sendStatus{liveID: m.Content.IDLive, status: false, err: err}
+		return err
 	}
 
 	defer resp.Body.Close()
 
-	log.Print("[*] LiveID: " + m.Content.IDLive)
-
-	if resp.StatusCode < 200 && resp.StatusCode > 299 {
-		fmt.Print("Status: FALSE - StatusCode:", resp.Status)
-		c <- sendStatus{liveID: m.Content.IDLive, code: resp.StatusCode, status: false, err: errors.New("Status Code: " + strconv.Itoa(resp.StatusCode))}
-
-		// return errors.New("Status Code: " + strconv.Itoa(resp.StatusCode))
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		fmt.Printf("LiveID: %v Status: FALSE - StatusCode: %v", m.Content.IDLive, resp.Status)
+		// c <- sendStatus{liveID: m.Content.IDLive, code: resp.StatusCode, status: false, err: errors.New("Status Code: " + strconv.Itoa(resp.StatusCode))}
+		return err
 	}
 
 	// message for log
-	fmt.Print("Status: TRUE - StatusCode:", resp.Status)
+	fmt.Printf("LiveID: %v Status: TRUE - StatusCode: %v", m.Content.IDLive, resp.Status)
 	fmt.Println("")
 
-	c <- sendStatus{liveID: m.Content.IDLive, code: resp.StatusCode, status: true}
+	return nil
 
 }
