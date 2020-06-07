@@ -142,8 +142,9 @@ func GetVideoDataFromBroker() {
 			err := youtubeDataReceived(d)
 
 			if err != nil {
+				fmt.Println(err)
 				fmt.Println("Message not processed, being requeued...")
-				d.Reject(true) // requeue the message
+				d.Reject(false) // not requeue the message
 			} else {
 				d.Ack(false) // ack the message
 			}
