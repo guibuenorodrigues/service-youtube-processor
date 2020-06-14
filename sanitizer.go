@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 
 	guuid "github.com/google/uuid"
 )
@@ -277,6 +278,14 @@ func (m MessageResponse) sanitizeIDCategoria() string {
 		return ""
 	}
 
+	// check category if it's religion
+	isReligion := isRelegionCategory(m.Videos.Items[0].Snippet.Title)
+
+	// return ID 1000. it comes from the web database
+	if isReligion {
+		return "1000"
+	}
+
 	return m.Videos.Items[0].Snippet.CategoryId
 }
 
@@ -413,4 +422,27 @@ func ReflectStructField(Iface interface{}, FieldName string) error {
 	}
 
 	return nil
+}
+
+func isRelegionCategory(title string) bool {
+
+	tags := []string{"church", "gospel", "igreja", "missa", "santa", "evangelho", "paróquia", "paroquia", "adoracao", "adoracao", "orando", "louvor", "oração", "oracao"}
+
+	_, i := Find(tags, title)
+
+	return i
+}
+
+// Find - return if an element contain one of the array items
+func Find(slice []string, val string) (int, bool) {
+
+	for i, item := range slice {
+
+		if strings.Contains(strings.ToUpper(val), strings.ToUpper(item)) {
+			return i, true
+		}
+
+	}
+
+	return -1, false
 }
