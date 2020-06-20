@@ -51,6 +51,8 @@ type ContentMessage struct {
 // Sanitizer - start the sanitizer proccess
 func (m MessageResponse) Sanitizer() (SanitizedMessage, error) {
 
+	hasCriticalError = false
+
 	// define variable
 	// var message SanitizedMessage
 
@@ -426,7 +428,7 @@ func ReflectStructField(Iface interface{}, FieldName string) error {
 
 func isRelegionCategory(title string) bool {
 
-	tags := []string{"church", "gospel", "igreja", "missa", "santa", "evangelho", "paróquia", "paroquia", "adoracao", "adoracao", "orando", "louvor", "oração", "oracao"}
+	tags := []string{"church", "gospel", "igreja", "missa", "santa", "evangelho", "paróquia", "paroquia", "adoracao", "adoracao", "orando", "louvor", "oração", "oracao", "culto", "evangeliza", "padre", "pastor", "cristão", "cristao", "benção", "bencao", "bíblia", "biblia"}
 
 	_, i := Find(tags, title)
 

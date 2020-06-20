@@ -12,7 +12,7 @@ import (
 
 var (
 	// AMQURL = os.Getenv("AMQ_URL")
-	AMQURL = "amqp://guest:guest@127.0.0.1:5672"
+	AMQURL = "amqp://guest:guest@192.168.100.172:5672"
 )
 
 func sender() {
@@ -98,6 +98,10 @@ type interalContentResponse struct {
 	AppID         string `json:"appId"`
 }
 
+var video_id_requeued string
+var requeued_attempted = 0
+var allowRequeued bool
+
 // GetVideoDataFromBroker - listen to retrieve the data from youtebe api broker
 func GetVideoDataFromBroker() {
 
@@ -144,7 +148,16 @@ func GetVideoDataFromBroker() {
 			if err != nil {
 				fmt.Println(err)
 				fmt.Println("Message not processed, being requeued...")
-				d.Reject(false) // not requeue the message
+
+				if allowRequeued {
+					d.Reject(true) // not requeue the message
+				} else {
+					d.Reject(false)
+					allowRequeued = false
+					requeued_attempted = 0
+					video_id_requeued = ""
+				}
+
 			} else {
 				d.Ack(false) // ack the message
 			}
@@ -185,8 +198,32 @@ func youtubeDataReceived(d amqp.Delivery) error {
 	err = message.PostToProcess()
 
 	if err != nil {
+		handleRequeued(message.Videos.Items[0].Id)
 		return err
 	}
 
 	return nil
+}
+
+func handleRequeued(id string) {
+
+	if video_id_requeued == "" {
+		video_id_requeued = id
+		requeued_attempted++
+		allowRequeued = true
+	} else {
+		if video_id_requeued == id {
+			if requeued_attempted > 3 {
+				allowRequeued = false
+			} else {
+				allowRequeued = true
+				requeued_attempted++
+			}
+		} else {
+			video_id_requeued = id
+			allowRequeued = true
+			requeued_attempted++
+		}
+	}
+
 }
