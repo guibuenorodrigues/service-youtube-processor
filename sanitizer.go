@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/abadojack/whatlanggo"
 	guuid "github.com/google/uuid"
 )
 
@@ -77,6 +78,7 @@ func (m MessageResponse) Sanitizer() (SanitizedMessage, error) {
 	message.Content.ThumbStandard = m.sanitizeThumbStandard()
 	message.Content.TituloLive = m.sanitizeTituloLive()
 	message.Content.Likes = m.sanitizeLikes()
+	// message = m.sanitizeLang()
 
 	// check if there are any critical error during the process
 	if hasCriticalError {
@@ -389,6 +391,32 @@ func (m MessageResponse) sanitizeUUID() string {
 	return m.Interal.CorrelationID
 }
 
+func (m MessageResponse) sanitizeLang() string {
+
+	err := ReflectStructField(m.Videos.Items[0].Snippet, "Title")
+
+	// if does not existe
+	if err != nil {
+		return ""
+	}
+
+	if m.Videos.Items[0].Snippet.Title == "" {
+		// create function to save log
+		hasCriticalError = true
+		log.Println(" [-] Error to sanitize Titulo live ")
+		return ""
+	}
+
+	l, r := identifyLanguage(m.Videos.Items[0].Snippet.Title)
+
+	// check if is realiable
+	if r {
+		return l
+	}
+
+	return ""
+}
+
 // ReflectStructField if an interface is either a struct or a pointer to a struct
 // and has the defined member field, if error is nil, the given
 // FieldName exists and is accessible with reflect.
@@ -433,6 +461,19 @@ func isRelegionCategory(title string) bool {
 	_, i := Find(tags, title)
 
 	return i
+}
+
+func identifyLanguage(text string) (lang string, isReliable bool) {
+
+	info := whatlanggo.Detect(text)
+	//	c := fmt.Sprintf("%f", info.Confidence)
+
+	if info.Lang.String() == "" {
+		return "", false
+	}
+
+	return info.Lang.String(), info.IsReliable()
+
 }
 
 // Find - return if an element contain one of the array items
