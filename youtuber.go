@@ -88,9 +88,9 @@ func sender() {
 
 // MessageResponse from youtuber
 type MessageResponse struct {
-	LocationName string                    `json:"location"`
-	Videos       youtube.VideoListResponse `json:"videos"`
-	Interal      interalContentResponse    `json:"internal"`
+	Source  string                    `json:"source"`
+	Videos  youtube.VideoListResponse `json:"videos"`
+	Interal interalContentResponse    `json:"internal"`
 }
 
 type interalContentResponse struct {

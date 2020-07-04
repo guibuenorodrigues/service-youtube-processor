@@ -32,6 +32,7 @@ type HeadersMessage struct {
 
 // ContentMessage - contains the content
 type ContentMessage struct {
+	Origem         string `json:"origem"`
 	IDLive         string `json:"idLive"`
 	DataLive       string `json:"dataLive"`
 	DataPublicacao string `json:"dataPublicacao"`
@@ -62,7 +63,7 @@ func (m MessageResponse) Sanitizer() (SanitizedMessage, error) {
 	message.Headers.AppID = m.sanitizeAppID()
 
 	// sanitize content
-
+	message.Content.Origem = m.sanitizeSource()
 	message.Content.IDLive = m.sanitizeIDLive()
 	message.Content.DataLive = m.sanitizeDataLive()
 	message.Content.DataPublicacao = m.sanitizeDataPublicacao()
@@ -87,6 +88,10 @@ func (m MessageResponse) Sanitizer() (SanitizedMessage, error) {
 
 	return message, nil
 
+}
+
+func (m MessageResponse) sanitizeSource() string {
+	return m.Source
 }
 
 func (m MessageResponse) sanitizeLikes() string {
